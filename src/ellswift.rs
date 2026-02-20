@@ -372,6 +372,28 @@ mod tests {
         let pk = PublicKey::from_ellswift(ell);
         assert_eq!(pk, public_key);
     }
+
+    #[test]
+    #[cfg(all(not(secp256k1_fuzz), feature = "alloc"))]
+    fn test_from_pubkey_with_rnd_rtt() {
+        let public_key =
+            PublicKey::from_secret_key(&SecretKey::from_secret_bytes([1u8; 32]).unwrap());
+
+        let rnd_a = [0xabu8; 32];
+        let rnd_b = [0xcdu8; 32];
+
+        let ell_a = ElligatorSwift::from_pubkey_with_rnd(public_key, rnd_a);
+        let ell_b = ElligatorSwift::from_pubkey_with_rnd(public_key, rnd_b);
+
+        assert_ne!(ell_a, ell_b, "different randomness should yield different encodings");
+
+        let pk_a = PublicKey::from_ellswift(ell_a);
+        let pk_b = PublicKey::from_ellswift(ell_b);
+
+        assert_eq!(pk_a, public_key);
+        assert_eq!(pk_b, public_key);
+    }
+
     #[test]
     #[cfg(all(not(secp256k1_fuzz), feature = "alloc"))]
     fn test_create_elligator_swift_create_rtt() {
